@@ -50,7 +50,7 @@ if(UtilMethods.isSet(uId)){
 	UserAPI userAPI = APILocator.getUserAPI();
 	boolean respectFrontend = WebAPILocator.getUserWebAPI().isLoggedToBackend(request);
 	User loggedInUser = userAPI.loadUserById(uId, userAPI.getSystemUser(), respectFrontend);
-	session.setAttribute(org.apache.struts.Globals.LOCALE_KEY, loggedInUser.getLocale());
+	session.setAttribute(Globals.LOCALE_KEY, loggedInUser.getLocale());
 
 	if(UtilMethods.isSet(referer)){
 		session.removeAttribute(WebKeys.REFERER);
@@ -152,7 +152,7 @@ if(errorMessage != null){
 	session.setAttribute("_dotLoginMessages", errorMessage);
 	session.setAttribute("_failedLoginName", login);
 	SessionErrors.clear(request);
-	out.println("<html><head><script>top.location = '/c/portal_public/login';</script></head><body></body></html>");
+	out.println("<html><head><script>top.location = '/c/portal_public/login'; </script></head><body></body></html>");
 	return;
 }
 %>
@@ -183,6 +183,7 @@ if(errorMessage != null){
 
 <%@page import="com.dotmarketing.cms.factories.PublicEncryptionFactory"%>
 <%@page import="com.dotmarketing.util.Logger"%>
+<%@ page import="org.apache.struts.Globals" %>
 <script type="text/javascript">
 
 	dojo.addOnLoad(function(){
@@ -196,23 +197,34 @@ if(errorMessage != null){
 	        });
 
 			if(!cfMissing) {
-				showLogin();
+                showLoginFLP360();
 			}
 		}else{
-			showLogin();
+            showLoginFLP360();
 		}
+
+        <!--Show login-->
+        <%if(session.getAttribute("_dotLoginMessages")!=null){%>
+            showLogin();
+        <%}%>
 	});
+
 
 
    //dojo.addOnLoad(showLogin);
 
 	function showLogin(){
 	       var myDialog = dijit.byId("loginBox");
-	       dojo.style(myDialog.closeButtonNode, "visibility", "hidden");
 	       myDialog.tabStart = dojo.byId("loginPasswordTextBox");
 	       myDialog.show();
 	       setTimeout("dijit.byId('loginPasswordTextBox').focus()",200);
 	}
+
+    function showLoginFLP360(){
+        var myDialog = dijit.byId("loginFLP360Box");
+        dojo.style(myDialog.closeButtonNode, "visibility", "hidden");
+        myDialog.show();
+    }
 
 	function showForgot(){
 		var myDialog = dijit.byId("loginBox");
@@ -301,7 +313,6 @@ if(errorMessage != null){
 		});
 	<% } %>
 
-
 	dojo.connect(dojo.byId("loginBox"), "onkeypress", function(e){
 	        var key = e.keyCode || e.charCode;
 	        var k = dojo.keys;
@@ -320,8 +331,15 @@ function showLanguageSelector(){
 
 </script>
 
+    <div id="loginFLP360Box" style="display:none" draggable="false" dojoType="dijit.Dialog" title="<%= LanguageUtil.get(pageContext, "Login") %>">
+        <div class="buttonRow" style="padding-left:30px; padding-right:30px">
+            <button dojoType="dijit.form.Button" iconClass="loginIcon" tabindex="4"  onClick="window.location='/html/portal/googleLogin.jsp'">
+                FLP360 <%= LanguageUtil.get(pageContext, "sign-in") %>
+            </button>
+        </div>
 
-	<% boolean salesforceFilterOn = Boolean.valueOf(Config.getStringProperty("SALESFORCE_LOGIN_FILTER_ON"));
+
+    <% boolean salesforceFilterOn = Boolean.valueOf(Config.getStringProperty("SALESFORCE_LOGIN_FILTER_ON"));
 	if(editPassword || salesforceFilterOn){ %>
 		<div id="forgotPassword" style="display:none" draggable="false" dojoType="dijit.Dialog" title="<%= LanguageUtil.get(pageContext, "forgot-password") %>">
 			<dl>
@@ -361,6 +379,38 @@ function showLanguageSelector(){
 		  <input type="hidden" name="my_new_pass2" value="" />
 		</form>
 	<% } %>
+
+        <%------  Language Selector -----%>
+        <div id="languageSelectorBar" style="visibility: hidden; display: none;" title="Select Language">
+            <div style="text-align: right;margin-right:-5px;margin-top:-3px;">
+                <img onclick="dijit.popup.close(myDialog);" alt="<%= LanguageUtil.get(pageContext, "close") %>" title="<%= LanguageUtil.get(pageContext, "close") %>" src="/html/js/dojo/release/dojo/dijit/themes/dmundra/images/tabCloseHover.png" width="10" height="10" style="cursor: pointer;">
+
+            </div>
+            <div style="text-align: center;padding-left:10px;padding-right:10px;border: none;">
+                <% Locale[] locales = LanguageUtil.getAvailableLocales();%>
+                <% for (int i = 0; i < locales.length; i++) { %>
+                <%if(locale.equals(locales[i])){ %>
+                <img title="<%= locales[i].getDisplayLanguage(locales[i])%>" alt="<%= locales[i].getDisplayLanguage(locales[i])%>" src="/html/images/languages/<%= locales[i].getLanguage() + "_" + locales[i].getCountry() %>.gif" style="padding:2px;border:1px solid blue;margin-right:3px;">
+                <%}else{ %>
+                <img onclick="window.location='/html/portal/login.jsp?switchLocale=<%= locales[i].getLanguage() + "_" + locales[i].getCountry() %>';" title="<%= locales[i].getDisplayLanguage(locales[i])%>" alt="<%= locales[i].getDisplayLanguage(locales[i])%>" src="/html/images/languages/<%= locales[i].getLanguage() + "_" + locales[i].getCountry() %>.gif" style="padding:2px;border:1px solid #dddddd;cursor: pointer;">
+                <%} %>
+                <% } %>
+            </div>
+        </div>
+        <%------/  Language Selector -----%>
+
+        <div style="float: left;  cursor: pointer;padding-bottom:6px;padding-right:10px;" class="inputCaption"
+             onmousedown="dijit.popup.open({popup: myDialog, around: dojo.byId('myLanguageImage')})">
+            <img title="" id="myLanguageImage" alt="" src="/html/images/languages/<%= locale.getLanguage() + "_" + locale.getCountry() %>.gif" align="left" style="padding:1px;border:1px solid #ffffff">
+            <%-- <%=locale.getDisplayLanguage(locale)%> --%>
+        </div>
+
+        <div class="inputCaption" style="float:right;">
+            <a href="javascript:showLogin()"><%= LanguageUtil.get(pageContext, "local-credentials") %></a>
+        </div>
+    </div>
+
+
 
 	<div id="loginBox" dojoType="dijit.Dialog" draggable="false" style="display:none" title="<%= LanguageUtil.get(pageContext, "Login") %>">
 
@@ -403,34 +453,6 @@ function showLanguageSelector(){
 					<%= LanguageUtil.get(pageContext, "sign-in") %>
 				</button>
 			</div>
-
-			<div
-				style="float: left;  cursor: pointer;padding-bottom:6px;" class="inputCaption"
-				onmousedown="dijit.popup.open({popup: myDialog, around: dojo.byId('myLanguageImage')})">
-					<img title="" id="myLanguageImage" alt="" src="/html/images/languages/<%= locale.getLanguage() + "_" + locale.getCountry() %>.gif" align="left" style="padding:1px;border:1px solid #ffffff">
-					<%-- <%=locale.getDisplayLanguage(locale)%> --%>
-			</div>
-
-
-
-			<%------  Language Selector -----%>
-			    <div id="languageSelectorBar" style="visibility: hidden; display: none;" title="Select Language">
-			    	<div style="text-align: right;margin-right:-5px;margin-top:-3px;">
-			    		<img onclick="dijit.popup.close(myDialog);" alt="<%= LanguageUtil.get(pageContext, "close") %>" title="<%= LanguageUtil.get(pageContext, "close") %>" src="/html/js/dojo/release/dojo/dijit/themes/dmundra/images/tabCloseHover.png" width="10" height="10" style="cursor: pointer;">
-
-			    	</div>
-			    	<div style="text-align: center;padding-left:10px;padding-right:10px;border: none;">
-				    	<% Locale[] locales = LanguageUtil.getAvailableLocales();%>
-					    <% for (int i = 0; i < locales.length; i++) { %>
-						    <%if(locale.equals(locales[i])){ %>
-								<img title="<%= locales[i].getDisplayLanguage(locales[i])%>" alt="<%= locales[i].getDisplayLanguage(locales[i])%>" src="/html/images/languages/<%= locales[i].getLanguage() + "_" + locales[i].getCountry() %>.gif" style="padding:2px;border:1px solid blue;margin-right:3px;">
-						   	<%}else{ %>
-						   		<img onclick="window.location='/html/portal/login.jsp?switchLocale=<%= locales[i].getLanguage() + "_" + locales[i].getCountry() %>';" title="<%= locales[i].getDisplayLanguage(locales[i])%>" alt="<%= locales[i].getDisplayLanguage(locales[i])%>" src="/html/images/languages/<%= locales[i].getLanguage() + "_" + locales[i].getCountry() %>.gif" style="padding:2px;border:1px solid #dddddd;cursor: pointer;">
-						   	<%} %>
-					    <% } %>
-				    </div>
-			   </div>
-			<%------/  Language Selector -----%>
 
 			<div class="inputCaption" style="float:right;">
             	<a href="javascript:showForgot()"><%= LanguageUtil.get(pageContext, "forgot-password") %></a>

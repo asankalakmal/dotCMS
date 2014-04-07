@@ -75,6 +75,7 @@ public class GoogleAuthenticator {
 
     /**
      * Builds a login URL based on client ID, secret, callback URI, and scope
+     * @return - the google login url
      */
     public String buildLoginUrl() {
         GoogleAuthorizationCodeRequestUrl url = flow.newAuthorizationUrl();
@@ -95,6 +96,7 @@ public class GoogleAuthenticator {
 
     /**
      * Accessor for state token
+     * @return - the state token
      */
     public String getStateToken(){
         return stateToken;
@@ -102,8 +104,9 @@ public class GoogleAuthenticator {
 
     /**
      * Expects an Authentication Code, and makes an authenticated request for the user's profile information
-     * @return - JSON formatted user profile information
      * @param authCode - authentication code provided by google
+     * @return - JSON formatted user profile information
+     * @throws IOException
      */
     private String getUserInfoJson(String authCode) throws IOException {
         GoogleTokenResponse response = flow.newTokenRequest(authCode).setRedirectUri(CALLBACK_URI).execute();
@@ -117,12 +120,14 @@ public class GoogleAuthenticator {
             String jsonIdentity = request.execute().parseAsString();
 
         return jsonIdentity;
-
     }
 
     /**
-     * authenticates a user
-     * @param authCode - the google auth code for retrieve user info
+     * Authenticate a user
+     * @param request
+     * @param response
+     * @param session
+     * @param application
      * @return - true if successful
      */
     public Boolean authenticateUser(HttpServletRequest request,
@@ -165,7 +170,7 @@ public class GoogleAuthenticator {
             try {
                 response.sendError(401, "Not Authorized");
             }
-            catch(Exception e2){
+            catch(Exception ei){
             }
             return false;
         }

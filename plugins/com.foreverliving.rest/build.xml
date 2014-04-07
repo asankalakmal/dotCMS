@@ -1,3 +1,0 @@
-<project name="Forever Living dotCSM rest extension" default="build">
-	<import file="../common.xml"/>	
-</project>

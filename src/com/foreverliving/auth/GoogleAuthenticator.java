@@ -13,6 +13,14 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.gson.*;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.ServletContext;
+import java.io.IOException;
+import java.security.SecureRandom;
+import java.util.*;
 
 import com.dotmarketing.util.Logger;
 import com.liferay.portal.RequiredLayoutException;
@@ -27,15 +35,8 @@ import com.dotmarketing.util.UtilMethods;
 import com.liferay.portal.util.WebKeys;
 import com.dotmarketing.factories.PreviewFactory;
 import com.dotmarketing.util.Config;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.servlet.ServletContext;
-import java.io.IOException;
-import java.security.SecureRandom;
-import java.util.*;
+import com.dotmarketing.beans.*;
+import org.apache.struts.Globals;
 
 /**
  * Created by Jake Liscom on 2014-04-04.
@@ -143,26 +144,37 @@ public class GoogleAuthenticator {
             user = APILocator.getUserAPI().loadByUserByEmail(   email,
                                                                 APILocator.getUserAPI().getSystemUser(),
                                                                 false);
-            Cookie cookie = new Cookie( CookieKeys.ID,
-                                        PublicEncryptionFactory.encryptString(user.getUserId()));
-            cookie.setMaxAge(REMEMBER_ME_DURATION);
-            cookie.setPath("/");
+
+            //create a treat
+                Cookie cookie = new Cookie( CookieKeys.ID,
+                        PublicEncryptionFactory.encryptString(user.getUserId()));
+                cookie.setMaxAge(REMEMBER_ME_DURATION);
+                cookie.setPath("/");
+                response.addCookie(cookie);//Remember me cookie
+
+            List<Host> hosts = APILocator.getHostAPI().findAll(user, false);
+
+            //They do not have just one host so just log them in
+                if(hosts.size()!=1) {
+                    response.sendRedirect(REDIRECT_PATH);//login path via login page with remember me cookie
+                    return true;
+                }
 
             //get ready to rumble
-                response.addCookie(cookie);
-
-                if(!UtilMethods.isSet(request.getAttribute(WebKeys.REFERER))) {//do we have somewhere to be
+                if(!UtilMethods.isSet(request.getAttribute(WebKeys.REFERER))) {//do they already have somewhere to be?
                     session.setAttribute(WebKeys.REFERER, REDIRECT_AFTERLOGIN_PATH);//where we want to go after the login code
                     //session.setAttribute(com.dotmarketing.util.WebKeys.EDIT_MODE_SESSION, "true");
-                    session.setAttribute(com.dotmarketing.util.WebKeys.ADMIN_MODE_SESSION, "true");
+                    session.setAttribute(com.dotmarketing.util.WebKeys.CURRENT_HOST, hosts.get(0));//Log them into their host
+                    session.setAttribute(com.dotmarketing.util.WebKeys.ADMIN_MODE_SESSION, "true");//give them edit panel
                     session.setAttribute(WebKeys.CTX_PATH,application.getAttribute(WebKeys.CTX_PATH));//setup the path
                 }
 
             //compute the DIRECTOR_URL... whatever that means. //this fixes a bug that would not allow users to edit items even though they were in edit mode
-                session.setAttribute(WebKeys.USER_ID,user.getUserId());
-                PreviewFactory.setVelocityURLS(request);
+                session.setAttribute(Globals.LOCALE_KEY, user.getLocale());//set localization
+                session.setAttribute(WebKeys.USER_ID,user.getUserId());//log the user in
+                PreviewFactory.setVelocityURLS(request);//This sets the path to admin editors
 
-            response.sendRedirect(REDIRECT_PATH);//login path
+            response.sendRedirect(session.getAttribute(WebKeys.REFERER).toString());
             return true;
         }
         catch(Exception e){

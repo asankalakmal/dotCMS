@@ -53,7 +53,8 @@ public class GoogleAuthenticator {
         private static final String CALLBACK_URI = Config.getStringProperty("GOOGLE_CALLBACK_URI");
 
     private static final String REDIRECT_PATH = "/html/portal/login.jsp";//path to login code
-    private static final String REDIRECT_AFTERLOGIN_PATH = Config.getStringProperty("GOOGLE_REDIRECT_AFTERLOGIN_PATH");
+    private static final String DEFAULT_REDIRECT_AFTER_DISTRIBUTOR_LOGIN_PATH = Config.getStringProperty("DEFAULT_REDIRECT_AFTER_DISTRIBUTOR_LOGIN_PATH");
+    private static final String DEFAULT_REDIRECT_AFTER_GENERAL_LOGIN_PATH = Config.getStringProperty("DEFAULT_REDIRECT_AFTER_GENERAL_LOGIN_PATH");
 
     // start google authentication constants
         private static final Collection<String> SCOPE = Arrays.asList("https://www.googleapis.com/auth/userinfo.profile;https://www.googleapis.com/auth/userinfo.email".split(";"));
@@ -153,20 +154,22 @@ public class GoogleAuthenticator {
                 response.addCookie(cookie);//Remember me cookie
 
             List<Host> hosts = APILocator.getHostAPI().findAll(user, false);
+            session.setAttribute(WebKeys.CTX_PATH,application.getAttribute(WebKeys.CTX_PATH));//setup the path ourselves because this doesnt go through the backend
 
             //They do not have just one host so just log them in
                 if(hosts.size()!=1) {
+                    if(!UtilMethods.isSet(session.getAttribute(WebKeys.REFERER))) //do they already have somewhere to be?
+                        session.setAttribute(WebKeys.REFERER, DEFAULT_REDIRECT_AFTER_GENERAL_LOGIN_PATH);//where we want to go after the login code
+
                     response.sendRedirect(REDIRECT_PATH);//login path via login page with remember me cookie
                     return true;
                 }
 
             //get ready to rumble
-                if(!UtilMethods.isSet(request.getAttribute(WebKeys.REFERER))) {//do they already have somewhere to be?
-                    session.setAttribute(WebKeys.REFERER, REDIRECT_AFTERLOGIN_PATH);//where we want to go after the login code
-                    //session.setAttribute(com.dotmarketing.util.WebKeys.EDIT_MODE_SESSION, "true");
+                if(!UtilMethods.isSet(session.getAttribute(WebKeys.REFERER))) {
+                    session.setAttribute(WebKeys.REFERER, DEFAULT_REDIRECT_AFTER_DISTRIBUTOR_LOGIN_PATH);
                     session.setAttribute(com.dotmarketing.util.WebKeys.CURRENT_HOST, hosts.get(0));//Log them into their host
                     session.setAttribute(com.dotmarketing.util.WebKeys.ADMIN_MODE_SESSION, "true");//give them edit panel
-                    session.setAttribute(WebKeys.CTX_PATH,application.getAttribute(WebKeys.CTX_PATH));//setup the path
                 }
 
             //compute the DIRECTOR_URL... whatever that means. //this fixes a bug that would not allow users to edit items even though they were in edit mode

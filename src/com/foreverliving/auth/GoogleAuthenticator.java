@@ -135,10 +135,10 @@ public class GoogleAuthenticator {
     public Boolean authenticateUser(HttpServletRequest request,
                                     HttpServletResponse response,
                                     HttpSession session,
-                                    ServletContext application){
+                                    ServletContext application) throws Exception{
         JsonParser parser = new JsonParser();
         User user;
-        try{
+        //try{
             JsonObject googleUser = parser.parse(getUserInfoJson(request.getParameter("code"))).getAsJsonObject();
             String email = googleUser.get("email").toString().replace("\"", "");
 
@@ -153,11 +153,17 @@ public class GoogleAuthenticator {
                 cookie.setPath("/");
                 response.addCookie(cookie);//Remember me cookie
 
-            List<Host> hosts = APILocator.getHostAPI().findAll(user, false);
+            //get the host they requested if any
+                Host host = null;
+                if(session.getAttribute("flpSite")!=null) {
+                    String requestedSite = session.getAttribute("flpSite").toString();
+                    host = APILocator.getHostAPI().findByName(requestedSite, user, false); //Request
+                }
+
             session.setAttribute(WebKeys.CTX_PATH,application.getAttribute(WebKeys.CTX_PATH));//setup the path ourselves because this doesnt go through the backend
 
             //They do not have just one host so just log them in
-                if(hosts.size()!=1) {
+                if(host==null) {
                     if(!UtilMethods.isSet(session.getAttribute(WebKeys.REFERER))) //do they already have somewhere to be?
                         session.setAttribute(WebKeys.REFERER, DEFAULT_REDIRECT_AFTER_GENERAL_LOGIN_PATH);//where we want to go after the login code
 
@@ -168,7 +174,7 @@ public class GoogleAuthenticator {
             //get ready to rumble
                 if(!UtilMethods.isSet(session.getAttribute(WebKeys.REFERER))) {
                     session.setAttribute(WebKeys.REFERER, DEFAULT_REDIRECT_AFTER_DISTRIBUTOR_LOGIN_PATH);
-                    session.setAttribute(com.dotmarketing.util.WebKeys.CURRENT_HOST, hosts.get(0));//Log them into their host
+                    session.setAttribute(com.dotmarketing.util.WebKeys.CURRENT_HOST, host);//Log them into their host
                     session.setAttribute(com.dotmarketing.util.WebKeys.ADMIN_MODE_SESSION, "true");//give them edit panel
                 }
 
@@ -179,7 +185,7 @@ public class GoogleAuthenticator {
 
             response.sendRedirect(session.getAttribute(WebKeys.REFERER).toString());
             return true;
-        }
+        /*}
         catch(Exception e){
             SecurityLogger.logInfo(GoogleAuthenticator.class, "Error: " +e.toString());
             try {
@@ -188,6 +194,6 @@ public class GoogleAuthenticator {
             catch(Exception ei){
             }
             return false;
-        }
+        }*/
     }
 }

@@ -23,6 +23,7 @@
         if (request.getParameter("code") == null || request.getParameter("state") == null) {
             //set the secure state token in session to be able to track what we sent to google
                 session.setAttribute("state", helper.getStateToken());
+                session.setAttribute("flpSite", request.getParameter("site"));//remember the site they requested so we can send them there
 
             //Make it redirect
                 out.println(String.format("<a href='%s'>log in with google</a>", helper.buildLoginUrl()));

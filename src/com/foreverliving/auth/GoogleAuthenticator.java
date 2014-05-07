@@ -138,7 +138,7 @@ public class GoogleAuthenticator {
                                     ServletContext application) throws Exception{
         JsonParser parser = new JsonParser();
         User user;
-        //try{
+        try{
             JsonObject googleUser = parser.parse(getUserInfoJson(request.getParameter("code"))).getAsJsonObject();
             String email = googleUser.get("email").toString().replace("\"", "");
 
@@ -185,7 +185,7 @@ public class GoogleAuthenticator {
 
             response.sendRedirect(session.getAttribute(WebKeys.REFERER).toString());
             return true;
-        /*}
+        }
         catch(Exception e){
             SecurityLogger.logInfo(GoogleAuthenticator.class, "Error: " +e.toString());
             try {
@@ -194,6 +194,6 @@ public class GoogleAuthenticator {
             catch(Exception ei){
             }
             return false;
-        }*/
+        }
     }
 }

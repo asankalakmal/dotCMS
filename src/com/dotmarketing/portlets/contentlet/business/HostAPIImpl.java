@@ -533,10 +533,10 @@ public class HostAPIImpl implements HostAPI {
 
 				// Remove Contentlet
 				ContentletAPI contentAPI = APILocator.getContentletAPI();
-                dc.setSQL("select distinct id, language_id from identifier join contentlet on contentlet.identifier=identifier.id where identifier.host_inode=?");
+                dc.setSQL("select inode from identifier join contentlet on contentlet.identifier=identifier.id where identifier.host_inode=?");
                 dc.addParam(host.getIdentifier());
 				for (Map<String,Object> rr : dc.loadObjectResults()) {
-                    Contentlet contentlet = contentAPI.findContentletByIdentifier((String)rr.get("id"), false, (Long)rr.get("language_id"), user, false);
+                    Contentlet contentlet = contentAPI.find((String)rr.get("inode"),user,respectFrontendRoles);
                     contentAPI.delete(contentlet, user, respectFrontendRoles);
 				}
 

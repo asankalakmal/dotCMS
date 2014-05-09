@@ -537,7 +537,8 @@ public class HostAPIImpl implements HostAPI {
                 dc.addParam(host.getIdentifier());
 				for (Map<String,Object> rr : dc.loadObjectResults()) {
                     Contentlet contentlet = contentAPI.find((String)rr.get("inode"),user,respectFrontendRoles);
-                    contentAPI.delete(contentlet, user, respectFrontendRoles);
+                    if(contentlet!=null)
+                        contentAPI.delete(contentlet, user, respectFrontendRoles);
 				}
 
 				// Remove Folders

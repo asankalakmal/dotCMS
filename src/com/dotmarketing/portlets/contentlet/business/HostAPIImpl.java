@@ -533,13 +533,11 @@ public class HostAPIImpl implements HostAPI {
 
 				// Remove Contentlet
 				ContentletAPI contentAPI = APILocator.getContentletAPI();
-                dc.setSQL("select inode from identifier join contentlet on contentlet.identifier=identifier.id where identifier.host_inode=?");
-                dc.addParam(host.getIdentifier());
-				for (Map<String,Object> rr : dc.loadObjectResults()) {
-                    Contentlet contentlet = contentAPI.find((String)rr.get("inode"),user,respectFrontendRoles);
+                List<Contentlet> contentlets = contentAPI.findContentletsByHost(host,user,respectFrontendRoles);
+
+				for (Contentlet contentlet: contentlets)
                     if(contentlet!=null)
                         contentAPI.delete(contentlet, user, respectFrontendRoles);
-				}
 
 				// Remove Folders
 				FolderAPI folderAPI = APILocator.getFolderAPI();

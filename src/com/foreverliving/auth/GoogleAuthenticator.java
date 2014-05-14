@@ -164,19 +164,15 @@ public class GoogleAuthenticator {
 
             //They do not have just one host so just log them in
                 if(host==null) {
-                    if(!UtilMethods.isSet(session.getAttribute(WebKeys.REFERER))) //do they already have somewhere to be?
-                        session.setAttribute(WebKeys.REFERER, DEFAULT_REDIRECT_AFTER_GENERAL_LOGIN_PATH);//where we want to go after the login code
-
+                    session.setAttribute(WebKeys.REFERER, DEFAULT_REDIRECT_AFTER_GENERAL_LOGIN_PATH);//where we want to go after the login code
                     response.sendRedirect(REDIRECT_PATH);//login path via login page with remember me cookie
                     return true;
                 }
 
             //get ready to rumble
-                if(!UtilMethods.isSet(session.getAttribute(WebKeys.REFERER))) {
-                    session.setAttribute(WebKeys.REFERER, DEFAULT_REDIRECT_AFTER_DISTRIBUTOR_LOGIN_PATH);
-                    session.setAttribute(com.dotmarketing.util.WebKeys.CURRENT_HOST, host);//Log them into their host
-                    session.setAttribute(com.dotmarketing.util.WebKeys.ADMIN_MODE_SESSION, "true");//give them edit panel
-                }
+                session.setAttribute(WebKeys.REFERER, DEFAULT_REDIRECT_AFTER_DISTRIBUTOR_LOGIN_PATH);
+                session.setAttribute(com.dotmarketing.util.WebKeys.CURRENT_HOST, host);//Log them into their host
+                session.setAttribute(com.dotmarketing.util.WebKeys.ADMIN_MODE_SESSION, "true");//give them edit panel
 
             //compute the DIRECTOR_URL... whatever that means. //this fixes a bug that would not allow users to edit items even though they were in edit mode
                 session.setAttribute(Globals.LOCALE_KEY, user.getLocale());//set localization

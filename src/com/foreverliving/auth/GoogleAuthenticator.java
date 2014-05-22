@@ -172,6 +172,7 @@ public class GoogleAuthenticator {
             //get ready to rumble
                 session.setAttribute(WebKeys.REFERER, DEFAULT_REDIRECT_AFTER_DISTRIBUTOR_LOGIN_PATH);
                 session.setAttribute(com.dotmarketing.util.WebKeys.CURRENT_HOST, host);//Log them into their host
+                session.setAttribute(com.dotmarketing.util.WebKeys.CMS_SELECTED_HOST_ID,host.getIdentifier());//Set this host as the current host in admin
                 session.setAttribute(com.dotmarketing.util.WebKeys.ADMIN_MODE_SESSION, "true");//give them edit panel
 
             //compute the DIRECTOR_URL... whatever that means. //this fixes a bug that would not allow users to edit items even though they were in edit mode

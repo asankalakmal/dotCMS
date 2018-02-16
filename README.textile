@@ -1,5 +1,7 @@
 h1. dotCMS
 
+This repository has been moved to a new Stash Repository: ssh://git@scm.flpi.com:7999/arc/dotcms.git
+
 h2. Open Source Enterprise Java Web Content Management System
 
 h3. "http://dotcms.com":http://dotcms.com
